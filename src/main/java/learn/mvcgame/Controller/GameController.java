@@ -18,18 +18,44 @@ public class GameController {
     static List<String> moves = new ArrayList<>(Arrays.asList("Rock", "Paper", "Scissors"));
     Random rand = new Random();
     static String currentMove;
+    static int numWins;
+    static int numLosses;
 
     @GetMapping("/move")
     public String getMove() {
         return moves.get(rand.nextInt(3));
     }
 
+    @GetMapping("/wins")
+    public int getWins() {
+        return numWins;
+    }
+
+    @GetMapping("/losses")
+    public int getLosses() {
+        return numWins;
+    }
+
+    @GetMapping("/status")
+    public String getstatus() {
+        return checkStatus();
+    }
+
     @PutMapping("/move/{index}")
-    public String getOptions(@PathVariable int index) {
-        String computerMove = moves.get(rand.nextInt(3));
-        String playerMove = moves.get(index);
-        String outcome = getOutcome(computerMove, playerMove);
-        return outcome;
+    public String getOptions(@PathVariable String index) {
+        try {
+            int num = Integer.parseInt(index);
+            if (num > 2 || num < 0) {
+                return "Invalid move! Loser! 0-2 pls.";
+            }
+            String computerMove = moves.get(rand.nextInt(3));
+            String playerMove = moves.get(num);
+            String outcome = getOutcome(computerMove, playerMove);
+            String status = getstatus();
+            return outcome + "\n" + status;
+        } catch (NumberFormatException e) {
+            return "Idk what you did. Please enter 0-2 weirdo!";
+        }
     }
 
 
@@ -37,18 +63,33 @@ public class GameController {
         if (computerMove.equalsIgnoreCase(playerMove))
             return "Tie!!!";
         if (computerMove.equalsIgnoreCase("Rock") && playerMove.equalsIgnoreCase("Scissors")) {
-            return "You lose!";
+            numLosses++;
+            return "You lose! " + "The " + computerMove + " beats your " + playerMove + "!";
         }
         if (computerMove.equalsIgnoreCase("Scissors") && playerMove.equalsIgnoreCase("Paper")) {
-            return "You lose!";
+            numLosses++;
+            return "You lose! " + "The " + computerMove + " beats your " + playerMove + "!";
         }
         if (computerMove.equalsIgnoreCase("Paper") && playerMove.equalsIgnoreCase("Rock")) {
-            return "You lose!";
+            numLosses++;
+            return "You lose! " + "The " + computerMove + " beats your " + playerMove + "!";
         }
-        return "Victory";
+        numWins++;
+        return "Victory! " + "Your " + playerMove + " beats " + computerMove + "!";
     }
 
+    private String checkStatus() {
+        if (numWins == 2) {
+            numWins = 0;
+            numLosses = 0;
+            return "You won the whole game! 2 out of 3";
+        }
 
-
-
+        if (numLosses == 2) {
+            numWins = 0;
+            numLosses = 0;
+            return "You lose the whole game! 2 out of 3";
+        }
+        return "Game goes on...";
+    }
 }
